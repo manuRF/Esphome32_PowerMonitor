@@ -1,0 +1,65 @@
+esphome:
+  name: energia-esp32
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "3OfBvmQu4vnd5teeHNAKDRYaX4D2xmEdLBZj9hVO0SE="
+
+ota:
+  password: "**********"
+
+wifi:
+  ssid: "******************"
+  password: "****************************"
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Energia-Esp32 Fallback Hotspot"
+    password: "*******************"
+
+captive_portal:
+
+# Example configuration entry
+sensor:
+  - platform: ct_clamp
+    id: ct_clamp_power
+    sensor: adc_sensor
+    name: "Potencia KW"
+    update_interval: 60s
+    filters:
+      - calibrate_linear:
+          - 0.007 ->  0   # Leido el valor de 0.007A Real es 0.0 Amp
+          - 0.088 -> 0.77 # Leido el valor de 0.088A Real es 0.77 Amp
+          - 0.117 -> 0.95 
+          - 0.164 -> 1.28 
+          - 0.645 -> 6
+          - 1.024 -> 10
+      - lambda: return x * 230.0 / 1000;
+    unit_of_measurement: "kw"      
+
+# Example source sensor
+  - platform: adc
+    pin: GPIO36
+    attenuation: auto
+    id: adc_sensor
+    
+  - platform: total_daily_energy
+    name: "Energia diaria"
+    unit_of_measurement: kWh 
+    power_id: ct_clamp_power
+    filters:
+    device_class: energy
+
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+    
